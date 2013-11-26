@@ -21,9 +21,6 @@ public class OperationNot extends Expression {
     }
 
     public String toString() {
-        if (expression.getClass() == Variable.class) {
-            return "!" + expression.toString();
-        }
         return "!(" + expression.toString() + ")";
     }
 }

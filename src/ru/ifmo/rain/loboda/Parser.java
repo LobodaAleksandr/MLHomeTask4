@@ -1,17 +1,19 @@
 package ru.ifmo.rain.loboda;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Parser {
-    private Token token;
-    Map<Expression, Expression> references = new HashMap<Expression, Expression>();
-    Expression toReturn;
+    private static Token token;
+    private static LogicStreamTokenizer tokenizer;
 
-    public ArrayList<Expression> toParse(LogicStreamTokenizer tokenizer) throws IOException, ParserException {
-        ArrayList<Expression> list = new ArrayList<Expression>();
+    private static void skip(){
+        token = null;
+    }
+
+    public static List<Expression> toParse(LogicStreamTokenizer logicTokenizer) throws IOException {
+        List<Expression> list = new ArrayList<Expression>();
+        tokenizer = logicTokenizer;
         token = Token.PRINT;
         while (true) {
             token = tokenizer.nextToken();
@@ -21,113 +23,109 @@ public class Parser {
             if (token == Token.END) {
                 break;
             }
-            list.add(expression(tokenizer));
-
-            if (token != Token.PRINT && token != Token.END) {
-                throw new ParserException("Syntax error", tokenizer.getLine());
-            }
+            list.add(expression());
         }
         return list;
     }
 
-    //!, (, ), A
-    private Expression primary(LogicStreamTokenizer tokenizer) throws IOException, ParserException {
 
-        if (token == null) {
+    private static Term term() throws IOException {
+        if(token == null){
             token = tokenizer.nextToken();
         }
-        switch (token) {
-            case VARIABLE:
-                char ch = tokenizer.variableName;
-                token = tokenizer.nextToken();
-                toReturn = new Variable(ch);
-                if (references.containsKey(toReturn)) {
-                    return references.get(toReturn);
-                }
-                references.put(toReturn, toReturn);
-                return toReturn;
+        String name = tokenizer.get_name();
+        token = tokenizer.nextToken();
+        if(token == Token.LP){
+            List<Term> terms = new LinkedList<Term>();
+            token = Token.COMMA;
+            while(token == Token.COMMA){
+                skip();
+                terms.add(term());
+            }
+            token = tokenizer.nextToken();
+            return new Term(name, terms.toArray(new Term[0]));
+        } else {
+            return new Term(name, null);
+        }
+    }
+
+    private static Expression predicate() throws IOException {
+        if(token == null){
+            token = tokenizer.nextToken();
+        }
+        String name = tokenizer.get_name();
+        token = tokenizer.nextToken();
+        if(token == Token.LP){
+            List<Term> terms = new LinkedList<Term>();
+            token = Token.COMMA;
+            while(token == Token.COMMA){
+                skip();
+                terms.add(term());
+            }
+            token = tokenizer.nextToken();
+            return new Predicate(name, terms.toArray(new Term[0]));
+        } else {
+            return new Predicate(name, null);
+        }
+    }
+
+
+    private static Expression unary() throws IOException {
+        if(token == null){
+            token = tokenizer.nextToken();
+        }
+        switch(token){
+            case NOT:
+                skip();
+                return new OperationNot(unary());
+            case UNIVERSAL:
+                skip();
+                tokenizer.nextToken();
+                Variable var = new Variable(tokenizer.get_name());
+                skip();
+                return new Universal(var, unary());
+            case PREDICATE:
+                return predicate();
+            case EXISTENCE:
+                skip();
+                tokenizer.nextToken();
+                var = new Variable(tokenizer.get_name());
+                skip();
+                return new Existance(var, unary());
             case LP:
-                token = tokenizer.nextToken();
-                Expression expression = expression(tokenizer);
-                if (token != Token.RP) {
-                    if (token == Token.PRINT) {
-                        throw new ParserException("Expected ')'", tokenizer.getLine() - 1);
-                    } else {
-                        if (token == Token.NOT || token == Token.LP) {
-                            throw new ParserException("Syntax error", tokenizer.getLine());
-                        } else {
-                            throw new ParserException("Expected ')'", tokenizer.getLine());
-                        }
-                    }
-                }
+                skip();
+                Expression expression = expression();
                 token = tokenizer.nextToken();
                 return expression;
-            case NOT:
-                token = null;
-                toReturn = new OperationNot(primary(tokenizer));
-                if (references.containsKey(toReturn)) {
-                    return references.get(toReturn);
-                }
-                references.put(toReturn, toReturn);
-                return toReturn;
             default:
-                if (token == Token.PRINT) {
-                    throw new ParserException("Expected primary expression", tokenizer.getLine() - 1);
-                } else {
-                    throw new ParserException("Expected primary expression", tokenizer.getLine());
-                }
+                return null;
         }
     }
 
-    // &
-    private Expression andExpression(LogicStreamTokenizer tokenizer) throws IOException, ParserException {
-        Expression left = primary(tokenizer);
-        while (true) {
-            if (token == Token.AND) {
-                token = null;
-                toReturn = new OperationAnd(left, primary(tokenizer));
-                if (references.containsKey(toReturn)) {
-                    return references.get(toReturn);
-                }
-                references.put(toReturn, toReturn);
-                left = toReturn;
-            } else {
-                return left;
-            }
+    private static Expression conjunction() throws IOException {
+        Expression left = unary();
+        while(token == Token.AND){
+            skip();
+            left = new OperationAnd(left, unary());
         }
+        return left;
     }
 
-    // |
-    private Expression orExpression(LogicStreamTokenizer tokenizer) throws IOException, ParserException {
-        Expression left = andExpression(tokenizer);
-        while (true) {
-            if (token == Token.OR) {
-                token = null;
-                toReturn = new OperationOr(left, andExpression(tokenizer));
-                if (references.containsKey(toReturn)) {
-                    return references.get(toReturn);
-                }
-                references.put(toReturn, toReturn);
-                left = toReturn;
-            } else {
-                return left;
-            }
+    private static Expression disjunction() throws IOException {
+        Expression left = conjunction();
+        while(token == Token.OR){
+            skip();
+            left = new OperationOr(left, conjunction());
         }
+        return left;
     }
 
-    // ->
-    private Expression expression(LogicStreamTokenizer tokenizer) throws IOException, ParserException {
-        Expression left = orExpression(tokenizer);
-        if (token == Token.IMPLICATION) {
-            token = null;
-            toReturn = new Implication(left, expression(tokenizer));
-            if (references.containsKey(toReturn)) {
-                return references.get(toReturn);
-            }
-            references.put(toReturn, toReturn);
-            return toReturn;
-        } else {
-            return left;
+    private static Expression expression() throws IOException {
+        Expression left = disjunction();
+        if(token == Token.IMPLICATION){
+            skip();
+            return new Implication(left, expression());
         }
+        return left;
     }
 }

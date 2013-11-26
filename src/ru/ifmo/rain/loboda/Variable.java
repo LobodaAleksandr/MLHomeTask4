@@ -1,25 +1,12 @@
 package ru.ifmo.rain.loboda;
 
-public class Variable extends Expression {
-    char ch;
-
-    public Variable(char ch) {
-        this.ch = ch;
+public class Variable extends Term{
+    public Variable(String name){
+        super(name, null);
     }
 
-    char getName() {
-        return ch;
-    }
-
-    public boolean equals(Object obj) {
-        if (obj.getClass() == Variable.class) {
-            return ch == ((Variable) obj).getName();
-        } else {
-            return false;
-        }
-    }
-
+    @Override
     public String toString() {
-        return (new Character(ch)).toString();
+        return name;
     }
 }

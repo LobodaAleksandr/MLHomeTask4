@@ -6,18 +6,18 @@ import java.io.InputStream;
 import java.io.PushbackInputStream;
 
 public class LogicStreamTokenizer {
-    private char[] name;
+    private String name;
     private PushbackInputStream stream;
 
     public LogicStreamTokenizer(InputStream stream) {
         this.stream = new PushbackInputStream(new BufferedInputStream(stream));
     }
 
-    char[] get_name(){
+    String get_name(){
         return name;
     }
 
-    public Token nextToken() throws IOException, ParserException {
+    public Token nextToken() throws IOException {
         int ch = stream.read();
         while (ch == ' ') {
             ch = stream.read();
@@ -32,15 +32,6 @@ public class LogicStreamTokenizer {
                 return Token.UNIVERSAL;
             case '&':
                 return Token.AND;
-            case '|':
-                ch = stream.read();
-                if (ch == '-') {
-                    return Token.PROVABLY;
-                }
-                if (ch != -1) {
-                    stream.unread(ch);
-                }
-                return Token.OR;
             case '!':
                 return Token.NOT;
             case '\n':
@@ -64,12 +55,13 @@ public class LogicStreamTokenizer {
                 int first = ch;
                 ch = stream.read();
                 if(ch >= '0' && ch <= '9'){
-                    name = new char[]{(char)first, (char)ch};
+                    name = new String(new char[]{(char)first, (char)ch});
+                } else {
+                    if(ch != -1){
+                        stream.unread(ch);
+                    }
+                    name = new String(new char[]{(char)first});
                 }
-                if(ch != -1){
-                    stream.unread(ch);
-                }
-                name = new char[]{(char)first};
                 return token;
         }
     }

@@ -23,29 +23,10 @@ public abstract class BinaryOperation extends Expression {
         }
         String leftS;
         String rightS;
-        if (left.getClass() == Variable.class) {
-            leftS = left.toString();
-        } else {
-            leftS = "(" + left.toString() + ")";
-        }
-        if (right.getClass() == Variable.class) {
-            rightS = right.toString();
-        } else {
-            rightS = "(" + right.toString() + ")";
-        }
+        leftS = "(" + left.toString() + ")";
+        rightS = "(" + right.toString() + ")";
         stringCache = leftS + getSign() + rightS;
         return stringCache;
-    }
-
-    public boolean equals(Object obj) {
-        if (obj instanceof BinaryOperation) {
-            if (this.getClass() != obj.getClass()) {
-                return false;
-            }
-            return left.equals(((BinaryOperation) obj).getLeft()) && right.equals(((BinaryOperation) obj).getRight());
-        } else {
-            return false;
-        }
     }
 
     protected abstract String getSign();
