@@ -13,7 +13,7 @@ public class LogicStreamTokenizer {
         this.stream = new PushbackInputStream(new BufferedInputStream(stream));
     }
 
-    String get_name(){
+    String get_name() {
         return name;
     }
 
@@ -38,6 +38,8 @@ public class LogicStreamTokenizer {
                 return Token.PRINT;
             case ',':
                 return Token.COMMA;
+            case '|':
+                return Token.OR;
             case '-':
                 stream.read();
                 return Token.IMPLICATION;
@@ -47,20 +49,20 @@ public class LogicStreamTokenizer {
                 return Token.RP;
             default:
                 Token token;
-                if(ch >= 'a' && ch <= 'z'){
+                if (ch >= 'a' && ch <= 'z') {
                     token = Token.TERM;
                 } else {
                     token = Token.PREDICATE;
                 }
                 int first = ch;
                 ch = stream.read();
-                if(ch >= '0' && ch <= '9'){
-                    name = new String(new char[]{(char)first, (char)ch});
-                } else {
-                    if(ch != -1){
-                        stream.unread(ch);
-                    }
-                    name = new String(new char[]{(char)first});
+                name = new String(new char[]{(char)first});
+                while (ch >= '0' && ch <= '9') {
+                    name += (char)ch;
+                    ch = stream.read();
+                }
+                if (ch != -1) {
+                    stream.unread(ch);
                 }
                 return token;
         }

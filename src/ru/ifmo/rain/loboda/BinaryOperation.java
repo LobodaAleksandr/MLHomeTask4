@@ -1,5 +1,8 @@
 package ru.ifmo.rain.loboda;
 
+import java.util.HashMap;
+import java.util.Set;
+
 public abstract class BinaryOperation extends Expression {
     private Expression left, right;
     private String stringCache;
@@ -29,6 +32,31 @@ public abstract class BinaryOperation extends Expression {
         return stringCache;
     }
 
+    @Override
+    public boolean existsFree(Variable var) {
+        return left.existsFree(var) || right.existsFree(var);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this.getClass() != object.getClass()) {
+            return false;
+        } else {
+            return left.equals(((BinaryOperation) object).getLeft()) && right.equals(((BinaryOperation) object).getRight());
+        }
+    }
+
+    @Override
+    protected boolean isomorphic(Expression expression, HashMap<Predicate, Expression> vars) {
+        return left.isIsomorphic(((BinaryOperation) expression).getLeft(), vars) && right.isIsomorphic(((BinaryOperation) expression).getRight(), vars);
+    }
+
     protected abstract String getSign();
+
+
+    @Override
+    protected boolean freeToSubstitute(Variable from, Variable[] to, Set<Variable> blocked){
+        return left.freeToSubstitute(from, to, blocked) && right.freeToSubstitute(from, to, blocked);
+    }
 
 }

@@ -1,6 +1,9 @@
 package ru.ifmo.rain.loboda;
 
 
+import java.util.HashMap;
+import java.util.Set;
+
 public class OperationNot extends Expression {
     private Expression expression;
 
@@ -13,14 +16,25 @@ public class OperationNot extends Expression {
     }
 
     public boolean equals(Object obj) {
-        if (obj.getClass() == OperationNot.class) {
-            return expression.equals(((OperationNot) obj).getExpression());
-        } else {
-            return false;
-        }
+        return obj.getClass() == OperationNot.class && expression.equals(((OperationNot) obj).getExpression());
     }
 
     public String toString() {
         return "!(" + expression.toString() + ")";
+    }
+
+    @Override
+    protected boolean isomorphic(Expression expression, HashMap<Predicate, Expression> vars) {
+        return this.expression.isIsomorphic(((Existance) expression).getExpression(), vars);
+    }
+
+    @Override
+    public boolean existsFree(Variable var) {
+        return expression.existsFree(var);
+    }
+
+    @Override
+    protected boolean freeToSubstitute(Variable from, Variable[] to, Set<Variable> blocked) {
+        return expression.freeToSubstitute(from, to, blocked);
     }
 }

@@ -2,6 +2,7 @@
 *.in
 *.out
 *~
+Test.java
 *.iml
 out/
 .idea/

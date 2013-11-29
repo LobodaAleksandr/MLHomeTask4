@@ -1,13 +1,15 @@
 package ru.ifmo.rain.loboda;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class Parser {
     private static Token token;
     private static LogicStreamTokenizer tokenizer;
 
-    private static void skip(){
+    private static void skip() {
         token = null;
     }
 
@@ -30,35 +32,35 @@ public class Parser {
 
 
     private static Term term() throws IOException {
-        if(token == null){
+        if (token == null) {
             token = tokenizer.nextToken();
         }
         String name = tokenizer.get_name();
         token = tokenizer.nextToken();
-        if(token == Token.LP){
+        if (token == Token.LP) {
             List<Term> terms = new LinkedList<Term>();
             token = Token.COMMA;
-            while(token == Token.COMMA){
+            while (token == Token.COMMA) {
                 skip();
                 terms.add(term());
             }
             token = tokenizer.nextToken();
             return new Term(name, terms.toArray(new Term[0]));
         } else {
-            return new Term(name, null);
+            return new Variable(name);
         }
     }
 
     private static Expression predicate() throws IOException {
-        if(token == null){
+        if (token == null) {
             token = tokenizer.nextToken();
         }
         String name = tokenizer.get_name();
         token = tokenizer.nextToken();
-        if(token == Token.LP){
+        if (token == Token.LP) {
             List<Term> terms = new LinkedList<Term>();
             token = Token.COMMA;
-            while(token == Token.COMMA){
+            while (token == Token.COMMA) {
                 skip();
                 terms.add(term());
             }
@@ -71,10 +73,10 @@ public class Parser {
 
 
     private static Expression unary() throws IOException {
-        if(token == null){
+        if (token == null) {
             token = tokenizer.nextToken();
         }
-        switch(token){
+        switch (token) {
             case NOT:
                 skip();
                 return new OperationNot(unary());
@@ -104,7 +106,7 @@ public class Parser {
 
     private static Expression conjunction() throws IOException {
         Expression left = unary();
-        while(token == Token.AND){
+        while (token == Token.AND) {
             skip();
             left = new OperationAnd(left, unary());
         }
@@ -113,7 +115,7 @@ public class Parser {
 
     private static Expression disjunction() throws IOException {
         Expression left = conjunction();
-        while(token == Token.OR){
+        while (token == Token.OR) {
             skip();
             left = new OperationOr(left, conjunction());
         }
@@ -122,7 +124,7 @@ public class Parser {
 
     private static Expression expression() throws IOException {
         Expression left = disjunction();
-        if(token == Token.IMPLICATION){
+        if (token == Token.IMPLICATION) {
             skip();
             return new Implication(left, expression());
         }
