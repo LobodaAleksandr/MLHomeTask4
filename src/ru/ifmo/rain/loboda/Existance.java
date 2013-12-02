@@ -23,11 +23,25 @@ public class Existance extends Expression {
     }
 
     @Override
-    public boolean existsFree(Variable var) {
-        if (variable.equals(var)) {
+    protected void getFreeVariables(Set<Variable> variables, Set<Variable> blocked) {
+        boolean blockedHere = true;
+        if(blocked.contains(variable)){
+            blockedHere = false;
+        } else {
+            blocked.add(variable);
+        }
+        expression.getFreeVariables(variables, blocked);
+        if(blockedHere){
+            blocked.remove(variable);
+        }
+    }
+
+    @Override
+    public boolean replaceFree(Variable from, Variable to) {
+        if (variable.equals(from)) {
             return false;
         } else {
-            return expression.existsFree(var);
+            return expression.replaceFree(from, to);
         }
     }
 
@@ -37,7 +51,18 @@ public class Existance extends Expression {
 
     @Override
     public boolean equals(Object object) {
-        return object.getClass() == Existance.class && ((Existance) object).getExpression().equals(expression);
+        if (object.getClass() != Existance.class) {
+            return false;
+        }
+        Existance existance = (Existance) object;
+        if (!existance.getVariable().equals(variable)) {
+            return false;
+        }
+        return expression.equals(existance.getExpression());
+    }
+
+    public Variable getVariable(){
+        return variable;
     }
 
     @Override

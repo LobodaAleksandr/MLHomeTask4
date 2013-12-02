@@ -39,6 +39,12 @@ public class LogicStreamTokenizer {
             case ',':
                 return Token.COMMA;
             case '|':
+                ch = stream.read();
+                if(ch == '-'){
+                    return Token.PROVABLY;
+                } else {
+                    stream.unread(ch);
+                }
                 return Token.OR;
             case '-':
                 stream.read();

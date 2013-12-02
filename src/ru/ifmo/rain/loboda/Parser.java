@@ -1,37 +1,59 @@
 package ru.ifmo.rain.loboda;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 public class Parser {
-    private static Token token;
-    private static LogicStreamTokenizer tokenizer;
-
-    private static void skip() {
+    private Token token;
+    private LogicStreamTokenizer tokenizer;
+    Expression nextExpression;
+    List<Expression> hypothesis;
+    private void skip() {
         token = null;
     }
 
-    public static List<Expression> toParse(LogicStreamTokenizer logicTokenizer) throws IOException {
-        List<Expression> list = new ArrayList<Expression>();
-        tokenizer = logicTokenizer;
-        token = Token.PRINT;
-        while (true) {
-            token = tokenizer.nextToken();
-            if (token == Token.PRINT) {
-                continue;
+    Parser(InputStream inputStream) throws IOException {
+        this.tokenizer = new LogicStreamTokenizer(inputStream);
+        nextExpression = get();
+        if(token == Token.COMMA || token == Token.PROVABLY){
+            hypothesis = new ArrayList<Expression>();
+            hypothesis.add(nextExpression);
+            while(token == Token.COMMA){
+                hypothesis.add(get());
             }
-            if (token == Token.END) {
-                break;
-            }
-            list.add(expression());
+            nextExpression = get();
         }
-        return list;
     }
 
+    public List<Expression> getHypothesis(){
+        return hypothesis;
+    }
 
-    private static Term term() throws IOException {
+    public boolean hasNext() {
+        return nextExpression != null;
+    }
+
+    private Expression get() throws IOException {
+        token = Token.PRINT;
+        while(token == Token.PRINT){
+            token = tokenizer.nextToken();
+        }
+        if(token == Token.END){
+            return null;
+        }
+        return expression();
+    }
+
+    public Expression next() throws IOException {
+        Expression expression = nextExpression;
+        nextExpression = get();
+        return expression;
+    }
+
+    private Term term() throws IOException {
         if (token == null) {
             token = tokenizer.nextToken();
         }
@@ -51,7 +73,7 @@ public class Parser {
         }
     }
 
-    private static Expression predicate() throws IOException {
+    private Expression predicate() throws IOException {
         if (token == null) {
             token = tokenizer.nextToken();
         }
@@ -71,8 +93,7 @@ public class Parser {
         }
     }
 
-
-    private static Expression unary() throws IOException {
+    private Expression unary() throws IOException {
         if (token == null) {
             token = tokenizer.nextToken();
         }
@@ -104,7 +125,7 @@ public class Parser {
         }
     }
 
-    private static Expression conjunction() throws IOException {
+    private Expression conjunction() throws IOException {
         Expression left = unary();
         while (token == Token.AND) {
             skip();
@@ -113,7 +134,7 @@ public class Parser {
         return left;
     }
 
-    private static Expression disjunction() throws IOException {
+    private Expression disjunction() throws IOException {
         Expression left = conjunction();
         while (token == Token.OR) {
             skip();
@@ -122,7 +143,7 @@ public class Parser {
         return left;
     }
 
-    private static Expression expression() throws IOException {
+    private Expression expression() throws IOException {
         Expression left = disjunction();
         if (token == Token.IMPLICATION) {
             skip();

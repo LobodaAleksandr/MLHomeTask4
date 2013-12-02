@@ -13,14 +13,17 @@ public abstract class Expression {
         return isIsomorphic(expression, new HashMap<Predicate, Expression>());
     }
 
-    public boolean isReplaceReuslt(Expression expression, Variable variable){
-        Expression tmp = replaceFreeVariables(variable, new Variable(Variable.impossibleVariable));
-        boolean result = tmp.equals(expression);
+    public Term isReplaceResult(Expression expression, Variable variable){
+        replaceFree(variable, new Variable(Variable.impossibleVariable));
+        boolean isReplace = equals(expression);
+        Term result = null;
+        if(isReplace){
+            result = equalsWorkAround;
+        }
         equalsWorkAround = null;
+        replaceFree(new Variable(Variable.impossibleVariable), variable);
         return result;
     }
-
-    protected abstract Expression replaceFreeVariables(Variable from, Variable to);
 
     protected boolean isIsomorphic(Expression expression, HashMap<Predicate, Expression> vars) {
         if (expression.getClass() == Predicate.class) {
@@ -49,9 +52,17 @@ public abstract class Expression {
         return hashCache;
     }
 
+    public Set<Variable> getFreeVariables(){
+        Set<Variable> variables = new HashSet<Variable>();
+        getFreeVariables(variables, new HashSet<Variable>());
+        return variables;
+    }
+
+    protected abstract void getFreeVariables(Set<Variable> variables, Set<Variable> blocked);
+
     public abstract boolean equals(Object object);
 
-    public abstract boolean existsFree(Variable var);
+    public abstract boolean replaceFree(Variable from, Variable to);
 
     public boolean freeToSubstitute(Variable from, Term to){
         Set<Variable> variables = new HashSet<Variable>();

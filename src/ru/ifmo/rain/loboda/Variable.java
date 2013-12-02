@@ -10,19 +10,35 @@ public class Variable extends Term {
     }
 
     @Override
-    public boolean existsFree(Variable var) {
-        return var.equals(this);
+    public boolean replaceFree(Variable from, Variable to) {
+        if(name.equals(from.name)){
+            name = to.getName();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public boolean equals(Object object) {
         if(name.equals(impossibleVariable) && object instanceof Term){
             if(Expression.equalsWorkAround == null){
                 Expression.equalsWorkAround = (Term)object;
+                return true;
             } else {
                 return Expression.equalsWorkAround.equals(object);
             }
         }
         return object.getClass() == Variable.class && ((Term) object).getName().equals(name);
+    }
+
+    @Override
+    protected void getFreeVariables(Set<Variable> variables, Set<Variable> blocked) {
+        if(variables.contains(this)){
+            return;
+        }
+        if(!blocked.contains(this)){
+            variables.add(this);
+        }
     }
 
     protected boolean freeToSubstitute(Variable from, Variable[] to, Set<Variable> blocked){

@@ -17,6 +17,16 @@ public class Predicate extends Expression {
         return false;
     }
 
+    @Override
+    protected void getFreeVariables(Set<Variable> variables, Set<Variable> blocked) {
+        if(terms == null){
+            return;
+        }
+        for(Term term: terms){
+            term.getFreeVariables(variables, blocked);
+        }
+    }
+
     public String getName() {
         return name;
     }
@@ -42,16 +52,17 @@ public class Predicate extends Expression {
     }
 
     @Override
-    public boolean existsFree(Variable var) {
+    public boolean replaceFree(Variable from, Variable to) {
         if (terms == null) {
             return false;
         }
+        boolean result = false;
         for (Term term : terms) {
-            if (term.existsFree(var)) {
-                return true;
+            if (term.replaceFree(from, to)) {
+                result = true;
             }
         }
-        return false;
+        return result;
     }
 
     @Override

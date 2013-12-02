@@ -33,8 +33,8 @@ public abstract class BinaryOperation extends Expression {
     }
 
     @Override
-    public boolean existsFree(Variable var) {
-        return left.existsFree(var) || right.existsFree(var);
+    public boolean replaceFree(Variable from, Variable to) {
+        return left.replaceFree(from, to) || right.replaceFree(from, to);
     }
 
     @Override
@@ -57,6 +57,12 @@ public abstract class BinaryOperation extends Expression {
     @Override
     protected boolean freeToSubstitute(Variable from, Variable[] to, Set<Variable> blocked){
         return left.freeToSubstitute(from, to, blocked) && right.freeToSubstitute(from, to, blocked);
+    }
+
+    @Override
+    protected void getFreeVariables(Set<Variable> variables, Set<Variable> blocked){
+        left.getFreeVariables(variables, blocked);
+        right.getFreeVariables(variables, blocked);
     }
 
 }

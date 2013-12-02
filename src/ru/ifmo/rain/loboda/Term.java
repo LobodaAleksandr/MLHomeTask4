@@ -35,13 +35,14 @@ public class Term {
         return rep;
     }
 
-    public boolean existsFree(Variable var) {
+    public boolean replaceFree(Variable from, Variable to) {
+        boolean result = false;
         for (Term term : terms) {
-            if (term.existsFree(var)) {
-                return true;
+            if (term.replaceFree(from, to)) {
+                result = true;
             }
         }
-        return false;
+        return result;
     }
 
     protected boolean freeToSubstitute(Variable from, Variable to, boolean blocked){
@@ -59,6 +60,12 @@ public class Term {
     protected void getVariables(Set<Variable> variables){
         for(Term term: terms){
             term.getVariables(variables);
+        }
+    }
+
+    protected void getFreeVariables(Set<Variable> variables, Set<Variable> blocked) {
+        for(Term term: terms){
+            term.getFreeVariables(variables, blocked);
         }
     }
 

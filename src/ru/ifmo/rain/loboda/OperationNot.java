@@ -29,8 +29,13 @@ public class OperationNot extends Expression {
     }
 
     @Override
-    public boolean existsFree(Variable var) {
-        return expression.existsFree(var);
+    protected void getFreeVariables(Set<Variable> variables, Set<Variable> blocked) {
+        expression.getFreeVariables(variables, blocked);
+    }
+
+    @Override
+    public boolean replaceFree(Variable from, Variable to) {
+        return expression.replaceFree(from, to);
     }
 
     @Override
