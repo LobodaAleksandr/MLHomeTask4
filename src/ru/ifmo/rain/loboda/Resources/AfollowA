@@ -1,5 +1,5 @@
-A->((A->A)->A)
-A->(A->A)
-(A->(A->A))->((A->((A->A)->A))->(A->A))
-(A->((A->A)->A))->(A->A)
-A->A
+alpha->((alpha->alpha)->alpha)
+alpha->(alpha->alpha)
+(alpha->(alpha->alpha))->((alpha->((alpha->alpha)->alpha))->(alpha->alpha))
+(alpha->((alpha->alpha)->alpha))->(alpha->alpha)
+alpha->alpha

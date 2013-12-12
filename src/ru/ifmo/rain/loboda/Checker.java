@@ -13,6 +13,7 @@ public class Checker {
     private String error;
     private Set<Variable> blocked;
     private Expression lastPonens;
+    private Expression alpha;
 
     public Expression getLastPonens(){
         return lastPonens;
@@ -26,7 +27,11 @@ public class Checker {
         if (!isInit) {
             init();
         }
-        blocked = hypothesis.get(hypothesis.size() - 1).getFreeVariables();
+        alpha = null;
+        if(hypothesis.size() != 0){
+            blocked = hypothesis.get(hypothesis.size() - 1).getFreeVariables();
+            alpha = hypothesis.get(hypothesis.size() - 1);
+        }
         rightParts = new HashMap<Expression, List<Expression>>();
         proved = new HashSet<Expression>();
         this.hypothesis = new HashSet<Expression>(hypothesis);
@@ -44,7 +49,10 @@ public class Checker {
 
     public Type check(Expression expression) {
         Type result = Type.ERROR;
-        if (hypothesis.contains(expression)) {
+        if(expression.equals(alpha)){
+            result = Type.ALPHA;
+        }
+        if (result == Type.ERROR && hypothesis.contains(expression)) {
             result = Type.HYPOTHESIS;
         }
         for (Expression axiom : axioms) {
@@ -76,7 +84,13 @@ public class Checker {
             Variable variable = ((Universal)((Implication)expression).getRight()).getVariable();
             if(proved.contains(new Implication(phi, ksi))){
                 if(!phi.replaceFree(variable, variable)){
-                    result = Type.MODUS_PONENS_2;
+                    if(blocked.contains(variable)){
+                        error = "используется правило с квантором по переменной " + variable + "," +
+                                "входящей свободно в допущение ";
+                        result = Type.ERROR;
+                    } else {
+                        result = Type.MODUS_PONENS_2;
+                    }
                 } else {
                     error = "переменная " + variable + " входит свободно в формулу " + phi + ".";
                 }
@@ -89,7 +103,13 @@ public class Checker {
             Variable variable = ((Existance)((Implication)expression).getLeft()).getVariable();
             if(proved.contains(new Implication(ksi, phi))){
                 if(!phi.replaceFree(variable, variable)){
-                    result = Type.MODUS_PONENS_3;
+                    if(blocked.contains(variable)){
+                        error = "используется правило с квантором по переменной " + variable + "," +
+                                "входящей свободно в допущение ";
+                        result = Type.ERROR;
+                    } else {
+                        result = Type.MODUS_PONENS_3;
+                    }
                 } else {
                     error = "переменная " + variable + " входит свободно в формулу " + phi + ".";
                 }
@@ -137,7 +157,7 @@ public class Checker {
         }
         if(before.freeToSubstitute(variable, replacer)){
             if(blocked.contains(variable)){
-                error = "используется <правило|схема аксиом> с квантором по переменной " + variable + "," +
+                error = "используется схема аксиом с квантором по переменной " + variable + "," +
                         "входящей свободно в допущение ";
                 return false;
             } else {
@@ -150,6 +170,6 @@ public class Checker {
     }
 
     public enum Type {
-        HYPOTHESIS, ERROR, CLASSICAL_AXIOM, PREDICATE_AXIOM, MODUS_PONENS_1, MODUS_PONENS_2, MODUS_PONENS_3
+        HYPOTHESIS, ERROR, CLASSICAL_AXIOM, PREDICATE_AXIOM, MODUS_PONENS_1, MODUS_PONENS_2, MODUS_PONENS_3, ALPHA
     }
 }
