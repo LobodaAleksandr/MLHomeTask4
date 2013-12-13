@@ -57,6 +57,12 @@ public class Parser {
         if (token == null) {
             token = tokenizer.nextToken();
         }
+        if(token == Token.LP){
+            skip();
+            Term term = term();
+            token = tokenizer.nextToken();
+            return term;
+        }
         String name = tokenizer.get_name();
         token = tokenizer.nextToken();
         if (token == Token.LP) {

@@ -34,7 +34,7 @@ public abstract class BinaryOperation extends Expression {
 
     @Override
     public boolean replaceFree(Variable from, Variable to) {
-        return left.replaceFree(from, to) || right.replaceFree(from, to);
+        return left.replaceFree(from, to) | right.replaceFree(from, to);
     }
 
     @Override
