@@ -14,14 +14,14 @@ public class Main {
         BufferedReader reader = new BufferedReader(new InputStreamReader(Main.class.getResourceAsStream("Resources/" + Resource)));
         StringWriter stringWriter = new StringWriter();
         for(String line = reader.readLine(); line != null; line = reader.readLine()){
+            if(x != null)
+                line = line.replace("x", x.toString());
             if(A != null)
                 line = line.replace("alpha", "(" + A.toString() + ")");
             if(B != null)
                 line = line.replace("beta", "(" + B.toString() + ")");
             if(C != null)
                 line = line.replace("psi", "(" + C.toString() + ")");
-            if(x != null)
-                line = line.replace("x", x.toString());
             stringWriter.write(line + "\n");
         }
         String result = stringWriter.toString();
@@ -76,10 +76,10 @@ public class Main {
             }
             line++;
         }
-        if(e == null || !toProve.equals(e)){
+        /*if(e == null || !toProve.equals(e)){
             why = "Последнее выражение должно совпадать с доказываемым";
             return null;
-        }
+        } */
         return result;
     }
 
